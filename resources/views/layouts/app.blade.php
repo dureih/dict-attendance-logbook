@@ -130,6 +130,12 @@
   /* FOOTER */
   .site-footer{background:var(--blue);color:rgba(255,255,255,.5);text-align:center;padding:18px 20px;font-size:.78rem;letter-spacing:.03em;margin-top:40px;}
   .site-footer strong{color:var(--yellow-light);}
+  /* ── COMBO BOX ── */
+  .combo-wrap{position:relative;}
+  .combo-dropdown{display:none;position:absolute;top:100%;left:0;right:0;background:#fff;border:1.5px solid var(--blue-light);border-top:none;border-radius:0 0 8px 8px;max-height:210px;overflow-y:auto;z-index:999;list-style:none;margin:0;padding:4px 0;box-shadow:0 6px 18px rgba(0,0,0,.10);}
+  .combo-item{padding:9px 14px;font-size:.88rem;cursor:pointer;color:var(--gray-800);transition:background .12s;}
+  .combo-item:hover{background:#EFF6FF;color:var(--blue);font-weight:600;}
+  .combo-empty{padding:10px 14px;font-size:.82rem;color:var(--gray-400);font-style:italic;}
 </style>
 </head>
 <body>

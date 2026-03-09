@@ -3,10 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Visitor;
-use App\Models\User;
 use App\Exports\VisitorsExport;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 use Maatwebsite\Excel\Facades\Excel;
 use Barryvdh\DomPDF\Facade\Pdf;
 
@@ -20,12 +18,12 @@ class AdminController extends Controller
         if ($request->filled('search')) {
             $s = $request->search;
             $query->where(function ($q) use ($s) {
-                $q->where('last_name',      'like', "%$s%")
-                  ->orWhere('first_name',   'like', "%$s%")
-                  ->orWhere('barangay',     'like', "%$s%")
-                  ->orWhere('municipality', 'like', "%$s%")
-                  ->orWhere('province',     'like', "%$s%")
-                  ->orWhere('contact_number','like',"%$s%");
+                $q->where('last_name',       'like', "%$s%")
+                  ->orWhere('first_name',    'like', "%$s%")
+                  ->orWhere('barangay',      'like', "%$s%")
+                  ->orWhere('municipality',  'like', "%$s%")
+                  ->orWhere('province',      'like', "%$s%")
+                  ->orWhere('contact_number','like', "%$s%");
             });
         }
 
@@ -55,7 +53,7 @@ class AdminController extends Controller
         return back()->with('success', 'Record deleted successfully.');
     }
 
-    // Export to Excel
+    // Export ALL (filtered) to Excel
     public function exportExcel(Request $request)
     {
         return Excel::download(
@@ -64,7 +62,7 @@ class AdminController extends Controller
         );
     }
 
-    // Export to PDF
+    // Export ALL (filtered) to PDF
     public function exportPdf(Request $request)
     {
         $query = Visitor::query();
@@ -89,38 +87,24 @@ class AdminController extends Controller
         return $pdf->download('dict-attendance-' . now()->format('Y-m-d') . '.pdf');
     }
 
-    // ── Admin User Management ─────────────────────────────────
+    // ── SINGLE VISITOR EXPORTS ────────────────────────────────
 
-    public function users()
+    // Export single visitor to Excel
+    public function exportVisitorExcel(Visitor $visitor)
     {
-        $users = User::orderBy('name')->get();
-        return view('admin.users', compact('users'));
+        return Excel::download(
+            new VisitorsExport([], collect([$visitor])),
+            'visitor-' . $visitor->id . '-' . now()->format('Y-m-d') . '.xlsx'
+        );
     }
 
-    public function storeUser(Request $request)
+    // Export single visitor to PDF
+    public function exportVisitorPdf(Visitor $visitor)
     {
-        $validated = $request->validate([
-            'name'     => 'required|string|max:100',
-            'email'    => 'required|email|unique:users,email',
-            'password' => 'required|string|min:8|confirmed',
-        ]);
+        $visitors = collect([$visitor]);
+        $pdf = Pdf::loadView('exports.visitors-pdf', compact('visitors'))
+                  ->setPaper('a4', 'portrait');
 
-        User::create([
-            'name'     => $validated['name'],
-            'email'    => $validated['email'],
-            'password' => Hash::make($validated['password']),
-            'role'     => 'admin',
-        ]);
-
-        return back()->with('success', 'Admin account created successfully.');
-    }
-
-    public function destroyUser(User $user)
-    {
-        if ($user->id === auth()->id()) {
-            return back()->with('error', 'You cannot delete your own account.');
-        }
-        $user->delete();
-        return back()->with('success', 'Admin account deleted.');
+        return $pdf->download('visitor-' . $visitor->id . '-' . now()->format('Y-m-d') . '.pdf');
     }
 }
